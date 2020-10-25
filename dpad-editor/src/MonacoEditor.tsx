@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import * as Y from "yjs";
 import { MonacoBinding } from "y-monaco";
-import { WebsocketProvider } from 'y-websocket'
+import { WebrtcProvider } from "y-webrtc";
+import * as awarenessProtocol from 'y-protocols/awareness.js'
 import Editor from "@monaco-editor/react";
 import { FillSpinner as Loader } from "react-spinners-kit";
 
@@ -18,10 +19,16 @@ const MonacoEditor = () => {
     }
 
     const yDoc = new Y.Doc();
-    const yjsProvider = new WebsocketProvider('wss://localhost:34000', 'monaco', yDoc)
-    /*const yjsProvider = new WebrtcProvider("test", yDoc, {
-      signaling: ["ws://localhost:3000"],
-    });*/
+    const webRtcOpt = {
+      signaling: ["ws://localhost:34000"],
+      password: null,
+      awareness: new awarenessProtocol.Awareness(yDoc),
+      maxConns: 25,
+      filterBcConns: true,
+      peerOpts: {}, // simple-peer options. See https://github.com/feross/simple-peer#peer--new-peeropts
+    };
+
+    const yjsProvider = new WebrtcProvider("monaco", yDoc, webRtcOpt);
 
     const type = yDoc.getText("monaco");
 
@@ -36,7 +43,6 @@ const MonacoEditor = () => {
     yjsProvider.connect();
 
     return () => {};
-
   }, [monacoEditor]);
 
   return (
@@ -51,4 +57,4 @@ const MonacoEditor = () => {
   );
 };
 
-export default MonacoEditor
+export default MonacoEditor;
