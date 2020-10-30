@@ -45,6 +45,9 @@ const MonacoEditor = () => {
     return () => {};
   }, [monacoEditor]);
 
+  const editorOptions = {
+    fontSize: 20
+  }
   return (
     <Editor
       height="120vh" // By default, it fully fits with its parent
@@ -52,6 +55,7 @@ const MonacoEditor = () => {
       language={"python"}
       loading={<Loader />}
       value={""}
+      options={editorOptions}
       editorDidMount={onEditorMounted}
     />
   );
