@@ -8,12 +8,17 @@ import DpadAppBar from "./components/AppBar";
 import StarterDialog from "./components/StarterDialog"
 
 function App() {
+ 
+  const onToolBarChange = (val, id) => {
+    console.log(val, id);
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <DpadAppBar />
       <StarterDialog />
-      <EditorToolBar />
+      <EditorToolBar onToolBarChange={onToolBarChange}/>
       <MonacoEditor />
     </ThemeProvider>
   );
