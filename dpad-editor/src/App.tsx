@@ -8,9 +8,15 @@ import DpadAppBar from "./components/AppBar";
 import StarterDialog from "./components/StarterDialog"
 
 function App() {
+  const [language, setLang] = useState("Python");
+  const [fontSize, setFontSize] = useState(20);
+  const [darkMode, setDarkMode] = useState(false);
  
-  const onToolBarChange = (val, id) => {
-    console.log(val, id);
+  const onToolBarChange = (lang, size, dark) => {
+    setLang(lang);
+    setFontSize(size);
+    setDarkMode(dark);
+    
   };
 
   return (
@@ -19,7 +25,7 @@ function App() {
       <DpadAppBar />
       <StarterDialog />
       <EditorToolBar onToolBarChange={onToolBarChange}/>
-      <MonacoEditor />
+      <MonacoEditor language={language} fontSize={fontSize} darkMode={darkMode}/>
     </ThemeProvider>
   );
 }

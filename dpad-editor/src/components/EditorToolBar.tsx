@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { withStyles } from "@material-ui/core/styles";
 import {
   Toolbar,
@@ -16,7 +16,14 @@ import {
 
 const styles = (theme: Theme) => ({
   root: {
+    display: 'flex',
     backgroundColor: theme.palette.primary.light,
+    justifyContent: 'space-between',
+  },
+  select: {
+    width: 120,
+    marginRight: theme.spacing(2),
+    marginLeft: theme.spacing(2),
   },
   slider: {
     width: 120,
@@ -25,39 +32,40 @@ const styles = (theme: Theme) => ({
   },
   input: {
     marginRight: theme.spacing(4),
-  },
-  select: {
-    width: 120,
-    marginRight: theme.spacing(2),
-    marginLeft: theme.spacing(2),
+    flex: 1,
   },
   formControl: {
     margin: theme.spacing(1),
     minWidth: 120,
-    justifyContent: 'space-between',
   },
 });
 
 function EditorToolBar(props) {
   const { classes } = props;
   const [language, setLanguage] = React.useState('Python');
-  const [fontSize, setFontSize] = React.useState<number | string | Array<number | string>>(12);
+  const [fontSize, setFontSize] = React.useState<number | string | Array<number | string>>(20);
+  const [switchState, setSwitchState] = React.useState(false);
 
   const handleLangChange = (event) => {
     setLanguage(event.target.value);
-    props.onToolBarChange(event.target.value, fontSize);
+    props.onToolBarChange(event.target.value, fontSize, switchState);
   };
 
   const handleSliderChange = (event, newSize) => {
     setFontSize(newSize);
-    props.onToolBarChange(language, newSize);
+    props.onToolBarChange(language, newSize, switchState);
   };
   
   const handleInputChange = (event) => {
     setFontSize(event.target.value === '' ? '' : Number(event.target.value));
     if (event.target.value >= 4 && event.target.value <= 40 && Number(event.target.value) % 2 == 0) {
-      props.onToolBarChange(language, event.target.value);
+      props.onToolBarChange(language, event.target.value, switchState);
     }
+  };
+
+  const handleSwitchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSwitchState(!switchState);
+    props.onToolBarChange(language, fontSize, !switchState);
   };
 
   const handleBlur = () => {
@@ -124,7 +132,13 @@ function EditorToolBar(props) {
           labelPlacement="start"
         />
         <FormControlLabel
-          control={<Switch checked={true} />}
+          control={
+            <Switch 
+              checked={switchState}
+              onChange={handleSwitchChange}
+            />
+          }
+          className={classes.switch}
           label={<Typography noWrap>Dark mode</Typography>}
           labelPlacement="start"
         />
