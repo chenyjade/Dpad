@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import MuiAppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
-import { Typography, TextField, Theme } from '@material-ui/core';
-
+import { Typography, TextField, Theme, makeStyles } from '@material-ui/core';
+import { green } from '@material-ui/core/colors';
+import CheckCircleOutlineRoundedIcon from '@material-ui/icons/CheckCircleOutlineRounded';
+import HighlightOffIcon from '@material-ui/icons/HighlightOff';
 
 const appBarStyles = (theme: Theme) => ({
   root: {
@@ -17,7 +19,7 @@ function MyAppBar(props) {
 
 const CustomizedAppBar = withStyles(appBarStyles)(MyAppBar)
 
-const styles = (theme) => ({
+const useStyles = makeStyles((theme) => ({
   title: {
     fontSize: 24,
   },
@@ -32,23 +34,27 @@ const styles = (theme) => ({
     display: 'flex',
     justifyContent: 'flex-end',
   },
-});
+}));
 
-function DpadAppBar(props) {
-  const { classes } = props;
+interface DpadAppBarProps {
+  status: string
+}
+
+export default function DpadAppBar({ status }: DpadAppBarProps) {
+  const classes = useStyles()
   return (
       <CustomizedAppBar position="static">
-      <Toolbar className={classes.toolbar}>
+        <Toolbar className={classes.toolbar}>
           <div className={classes.left} />
           <Typography className={classes.title} >
             {'Dpad'}
-          </Typography>
-          <Typography className={classes.right} >
-            {'Client ID'}
+        </Typography>
+        
+        <Typography className={classes.right} >
+          {status === "connected" ? <CheckCircleOutlineRoundedIcon style={{ color: green[500] }} /> : <HighlightOffIcon color="secondary" />}
+          {status}
           </Typography>
         </Toolbar>
       </CustomizedAppBar>
   );
 }
-
-export default withStyles(styles)(DpadAppBar);

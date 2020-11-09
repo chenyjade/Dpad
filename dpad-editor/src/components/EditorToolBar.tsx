@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { withStyles } from "@material-ui/core/styles";
+import { EditorOptions, supportedLanguages } from "./EditorOptions";
 import {
   Toolbar,
   FormGroup,
@@ -12,13 +12,14 @@ import {
   Theme,
   Input,
   Typography,
+  makeStyles,
 } from "@material-ui/core";
 
-const styles = (theme: Theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   root: {
-    display: 'flex',
+    display: "flex",
     backgroundColor: theme.palette.primary.light,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
   },
   select: {
     width: 120,
@@ -38,43 +39,46 @@ const styles = (theme: Theme) => ({
     margin: theme.spacing(1),
     minWidth: 120,
   },
-});
+}));
 
-function EditorToolBar(props) {
-  const { classes } = props;
-  const [language, setLanguage] = React.useState('Python');
-  const [fontSize, setFontSize] = React.useState<number | string | Array<number | string>>(20);
-  const [switchState, setSwitchState] = React.useState(false);
+interface EditorToolBarProps {
+  language: string;
+  theme: string;
+  editorOptions: EditorOptions;
+  setLanguage: (language: string) => void;
+  setTheme: (theme: string) => void;
+  setEditorOptions: (opts: EditorOptions) => void;
+}
 
-  const handleLangChange = (event) => {
-    setLanguage(event.target.value);
-    props.onToolBarChange(event.target.value, fontSize, switchState);
-  };
+export default function EditorToolBar({
+  language,
+  theme,
+  editorOptions,
+  setLanguage,
+  setTheme,
+  setEditorOptions,
+}: EditorToolBarProps) {
+  const classes = useStyles();
+  const setFontSize = (size: number) =>
+    setEditorOptions({ ...editorOptions, fontSize: size });
 
-  const handleSliderChange = (event, newSize) => {
-    setFontSize(newSize);
-    props.onToolBarChange(language, newSize, switchState);
-  };
-  
-  const handleInputChange = (event) => {
-    setFontSize(event.target.value === '' ? '' : Number(event.target.value));
-    if (event.target.value >= 4 && event.target.value <= 40 && Number(event.target.value) % 2 == 0) {
-      props.onToolBarChange(language, event.target.value, switchState);
+  const handleFontSizeInputChange = (event) => {
+    if (
+      event.target.value >= 4 &&
+      event.target.value <= 40 &&
+      Number(event.target.value) % 2 == 0
+    ) {
+      setFontSize(Number(event.target.value));
     }
   };
 
-  const handleSwitchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSwitchState(!switchState);
-    props.onToolBarChange(language, fontSize, !switchState);
-  };
-
   const handleBlur = () => {
-    if (fontSize < 4) {
+    if (editorOptions.fontSize < 4) {
       setFontSize(4);
-    } else if (fontSize > 40) {
+    } else if (editorOptions.fontSize > 40) {
       setFontSize(40);
-    } else if (Number(fontSize) % 2 == 1) {
-      setFontSize(Number(fontSize)-1);
+    } else if (Number(editorOptions.fontSize) % 2 == 1) {
+      setFontSize(Number(editorOptions.fontSize) - 1);
     }
   };
 
@@ -83,18 +87,19 @@ function EditorToolBar(props) {
       <FormGroup row>
         <FormControlLabel
           className={classes.formControl}
-          control={       
+          control={
             <Select
               labelId="language-select-label"
               id="language-select"
               value={language}
-              onChange={handleLangChange}
+              onChange={(e) => setLanguage(e.target.value as string)}
               className={classes.select}
             >
-              <MenuItem value={"Python"}>Python</MenuItem>
-              <MenuItem value={"JavaScript"}>JavaScript</MenuItem>
-              <MenuItem value={"Java"}>Java</MenuItem>
-            </Select>}
+              {supportedLanguages.map((language) => (
+                <MenuItem value={language} key={"item-" + language}>{language}</MenuItem>
+              ))}
+            </Select>
+          }
           label="Language"
           labelPlacement="start"
         />
@@ -104,8 +109,8 @@ function EditorToolBar(props) {
               <Grid item>
                 <Slider
                   className={classes.slider}
-                  value={typeof fontSize === 'number' ? fontSize : 4}
-                  onChange={handleSliderChange}
+                  value={editorOptions.fontSize}
+                  onChange={(e, val) => setFontSize(val as number)}
                   step={2}
                   min={4}
                   max={40}
@@ -114,15 +119,15 @@ function EditorToolBar(props) {
               <Grid item>
                 <Input
                   className={classes.input}
-                  value={fontSize}
+                  value={editorOptions.fontSize}
                   margin="dense"
-                  onChange={handleInputChange}
+                  onChange={handleFontSizeInputChange}
                   onBlur={handleBlur}
                   inputProps={{
                     step: 2,
                     min: 4,
                     max: 40,
-                    type: 'number',
+                    type: "number",
                   }}
                 />
               </Grid>
@@ -133,12 +138,13 @@ function EditorToolBar(props) {
         />
         <FormControlLabel
           control={
-            <Switch 
-              checked={switchState}
-              onChange={handleSwitchChange}
+            <Switch
+              checked={theme === "vs-dark"}
+              onChange={() => {
+                theme === "vs-dark" ? setTheme("vs") : setTheme("vs-dark");
+              }}
             />
           }
-          className={classes.switch}
           label={<Typography noWrap>Dark mode</Typography>}
           labelPlacement="start"
         />
@@ -146,5 +152,3 @@ function EditorToolBar(props) {
     </Toolbar>
   );
 }
-
-export default withStyles(styles)(EditorToolBar);

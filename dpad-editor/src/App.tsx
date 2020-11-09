@@ -1,31 +1,23 @@
-import React, { Fragment, useState } from "react";
+import React from "react";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import { ThemeProvider } from "@material-ui/core/styles";
-import CssBaseline from "@material-ui/core/CssBaseline";
 import theme from "./theme";
-import EditorToolBar from "./components/EditorToolBar"
-import MonacoEditor from "./components/MonacoEditor";
-import DpadAppBar from "./components/AppBar";
-import StarterDialog from "./components/StarterDialog"
-
+import MonacoEditorPage from "./components/MonacoEditor";
+import WelcomePage from "./components/WelcomePage";
+import { ConnContextProvider } from "./contexts/ConnectionContext";
 function App() {
-  const [language, setLang] = useState("Python");
-  const [fontSize, setFontSize] = useState(20);
-  const [darkMode, setDarkMode] = useState(false);
- 
-  const onToolBarChange = (lang, size, dark) => {
-    setLang(lang);
-    setFontSize(size);
-    setDarkMode(dark);
-    
-  };
-
   return (
     <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <DpadAppBar />
-      <StarterDialog />
-      <EditorToolBar onToolBarChange={onToolBarChange}/>
-      <MonacoEditor language={language} fontSize={fontSize} darkMode={darkMode}/>
+      <ConnContextProvider>
+        <Router>
+          <Switch>
+            <Route exact path="/offline" component={MonacoEditorPage} />
+            <Route path="/doc/:docId" component={MonacoEditorPage} />
+            <Route path="/join/:docId" component={WelcomePage} />
+            <Route path="/" component={WelcomePage} />
+          </Switch>
+        </Router>
+      </ConnContextProvider>
     </ThemeProvider>
   );
 }
