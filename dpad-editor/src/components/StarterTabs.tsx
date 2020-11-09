@@ -4,8 +4,9 @@ import AppBar from "@material-ui/core/AppBar";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 import { Button, Paper, TextField } from "@material-ui/core";
-import { useParams, useHistory } from "react-router-dom"
+import { useParams, useHistory } from "react-router-dom";
 import connectionContext from "../contexts/ConnectionContext";
+import { v4 as uuidv4 } from "uuid";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -47,19 +48,26 @@ export default function StarterTabs() {
   const classes = useStyles();
   const [tab, setTab] = React.useState(0);
   const { conn, updateConn } = React.useContext(connectionContext);
-  const urlParams = useParams()
-  const history = useHistory()
+  const urlParams = useParams();
+  const history = useHistory();
 
   useEffect(() => {
     if (urlParams.docId) {
-      setTab(1)
+      setTab(1);
     }
-    updateConn({ ...conn, docId: urlParams.docId})
-  }, [])
+    updateConn({ ...conn, docId: urlParams.docId });
+  }, []);
 
   const onStartBtnClick = () => {
-    history.push("/doc/" + conn.docId)
-  }
+    //TODO: Add input verification
+    if (tab === 0) {
+      const newId = uuidv4();
+      updateConn({ ...conn, docId: newId });
+      history.push("/doc/" + newId);
+    } else {
+      history.push("/doc/" + conn.docId);
+    }
+  };
 
   return (
     <div className={classes.root}>
@@ -78,18 +86,11 @@ export default function StarterTabs() {
           <TextField
             margin="dense"
             fullWidth
-            id="create-document-name-input"
-            label="Document name"
-            value={conn.docId}
-            onChange={e => updateConn({ ...conn, docId: e.target.value })}
-          />
-          <TextField
-            margin="dense"
-            fullWidth
             id="create-password-input"
-            label="password"
+            label="Please set up a password"
+            type="password"
             value={conn.password}
-            onChange={e => updateConn({ ...conn, password: e.target.value })}
+            onChange={(e) => updateConn({ ...conn, password: e.target.value })}
           />
           <TextField
             margin="dense"
@@ -97,9 +98,13 @@ export default function StarterTabs() {
             id="max-connections-input"
             label="Max number of collaborators"
             value={conn.maxConns}
-            onChange={e => updateConn({ ...conn, maxConns: Number(e.target.value) })}
+            onChange={(e) =>
+              updateConn({ ...conn, maxConns: Number(e.target.value) })
+            }
           />
-          <Button variant="contained" onClick={onStartBtnClick}>Get started!</Button>
+          <Button variant="contained" onClick={onStartBtnClick}>
+            Get started!
+          </Button>
         </div>
       </TabPanel>
       <TabPanel value={tab} index={1}>
@@ -110,17 +115,21 @@ export default function StarterTabs() {
             id="join-clientid-input"
             label="Document Id"
             value={conn.docId}
-            onChange={e => updateConn({ ...conn, docId: e.target.value })}
+            onChange={(e) => updateConn({ ...conn, docId: e.target.value })}
           />
           <TextField
             margin="dense"
             fullWidth
             id="join-password-input"
-            label="Password"
+            label="password"
+            type="password"
             value={conn.password}
-            onChange={e => updateConn({ ...conn, password: e.target.value })}
+            onChange={(e) => updateConn({ ...conn, password: e.target.value })}
           />
-          <Button variant="contained" onClick={onStartBtnClick}> Get started!</Button>
+          <Button variant="contained" onClick={onStartBtnClick}>
+            {" "}
+            Get started!
+          </Button>
         </div>
       </TabPanel>
     </div>

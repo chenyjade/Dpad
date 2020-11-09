@@ -96,7 +96,9 @@ export default function EditorToolBar({
               className={classes.select}
             >
               {supportedLanguages.map((language) => (
-                <MenuItem value={language} key={"item-" + language}>{language}</MenuItem>
+                <MenuItem value={language} key={"item-" + language}>
+                  {language}
+                </MenuItem>
               ))}
             </Select>
           }
