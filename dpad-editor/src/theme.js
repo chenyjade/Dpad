@@ -63,6 +63,7 @@ const theme = {
       ...fontHeader,
       letterSpacing: 0,
       fontSize: 60,
+      textShadow: "4px 4px 1px rgba(0,0,0,0.2)",
     },
     h2: {
       ...rawTheme.typography.h2,
@@ -100,7 +101,10 @@ const theme = {
     },
     body2: {
       ...rawTheme.typography.body1,
-      fontSize: 14,
+      fontSize: 18,
+      color: "white",
+      fontFamily: "'Trebuchet MS', Helvetica, sans-serif",
+      textShadow: "-1px 0 black, 0 1px black, 1px 0 black, 0 -1px black",
     },
   },
 };

@@ -41,7 +41,24 @@ const useStyles = makeStyles((theme: Theme) => ({
   root: {
     flexGrow: 1,
     backgroundColor: theme.palette.background.paper,
+    boxShadow: "5px 5px 5px rgba(0,0,0,0.3)",
   },
+  createTab: {
+    padding: "0 20px 20px",
+    '& Button': {
+      marginTop: "10px",
+      marginLeft: "35%",
+      width: "30%",
+    }
+  },
+  joinTab: {
+    padding: "0 20px 20px",
+    '& Button': {
+      marginTop: "10px",
+      marginLeft: "35%",
+      width: "30%",
+    }
+  }
 }));
 
 export default function StarterTabs() {
@@ -76,13 +93,14 @@ export default function StarterTabs() {
           value={tab}
           onChange={(e, v) => setTab(v)}
           aria-label="simple tabs example"
+          variant="fullWidth"
         >
           <Tab label="Create a new file" {...a11yProps(0)} />
           <Tab label="Join an existing file" {...a11yProps(1)} />
         </Tabs>
       </AppBar>
       <TabPanel value={tab} index={0}>
-        <div>
+        <div className={classes.createTab}>
           <TextField
             margin="dense"
             fullWidth
@@ -108,7 +126,7 @@ export default function StarterTabs() {
         </div>
       </TabPanel>
       <TabPanel value={tab} index={1}>
-        <div>
+        <div className={classes.joinTab}>
           <TextField
             margin="dense"
             fullWidth
