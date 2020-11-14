@@ -42,6 +42,14 @@ export default function MonacoEditorPage() {
     setTheme(theme);
   };
 
+  const onSetEditorOptions = (editorOptions) => {
+    if (monacoEditor) {
+      // @ts-ignore: Object is possibly 'null'.
+      setContent(monacoEditor.getValue());
+    }
+    setEditorOptions(editorOptions);
+  }
+
   const onEditorMounted = (editor: any, _: any) => {
     setMonacoEditor(editor);
   };
@@ -92,7 +100,7 @@ export default function MonacoEditorPage() {
         editorOptions={editorOptions}
         setLanguage={onSetLanguage}
         setTheme={onSetTheme}
-        setEditorOptions={setEditorOptions}
+        setEditorOptions={onSetEditorOptions}
       />
       <MonacoEditor
         height="90vh" // By default, it fully fits with its parent
