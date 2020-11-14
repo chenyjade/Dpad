@@ -4,9 +4,9 @@ import { green, grey, red } from '@material-ui/core/colors';
 const rawTheme = createMuiTheme({
   palette: {
     primary: {
-      light: '#69696a',
+      light: '#bdbdbd',
       main: '#28282a',
-      dark: '#1e1e1f',
+      dark: '#505050',
     },
     secondary: {
       light: '#fff5f8',
@@ -63,12 +63,15 @@ const theme = {
       ...fontHeader,
       letterSpacing: 0,
       fontSize: 60,
+      fontFamily: "'Big Shoulders Stencil Text', cursive",
       textShadow: "4px 4px 1px rgba(0,0,0,0.2)",
     },
     h2: {
       ...rawTheme.typography.h2,
       ...fontHeader,
-      fontSize: 48,
+      fontSize: 60,
+      fontFamily: "'Big Shoulders Stencil Text', cursive",
+      color: "white",
     },
     h3: {
       ...rawTheme.typography.h3,
@@ -101,10 +104,10 @@ const theme = {
     },
     body2: {
       ...rawTheme.typography.body1,
-      fontSize: 18,
+      fontSize: 22,
       color: "white",
-      fontFamily: "'Trebuchet MS', Helvetica, sans-serif",
-      textShadow: "-1px 0 black, 0 1px black, 1px 0 black, 0 -1px black",
+      fontFamily: "'Abel', sans-serif",
+      //textShadow: "-1px 0 black, 0 1px black, 1px 0 black, 0 -1px black",
     },
   },
 };

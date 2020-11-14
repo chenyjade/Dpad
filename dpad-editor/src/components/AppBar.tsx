@@ -46,7 +46,7 @@ export default function DpadAppBar({ status }: DpadAppBarProps) {
       <CustomizedAppBar position="static">
         <Toolbar className={classes.toolbar}>
           <div className={classes.left} />
-          <Typography className={classes.title} >
+          <Typography className={classes.title} variant="h2">
             {'Dpad'}
         </Typography>
         

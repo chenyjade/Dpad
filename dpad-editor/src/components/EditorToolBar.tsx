@@ -14,6 +14,7 @@ import {
   Typography,
   makeStyles,
 } from "@material-ui/core";
+import { useTheme } from '@material-ui/core/styles';
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -59,8 +60,11 @@ export default function EditorToolBar({
   setEditorOptions,
 }: EditorToolBarProps) {
   const classes = useStyles();
+  const myTheme = useTheme();
   const setFontSize = (size: number) =>
     setEditorOptions({ ...editorOptions, fontSize: size });
+  const [bgColor, setBgColor] = useState(myTheme.palette.primary.light);
+  const [fontColor, setFontColor] = useState("#2a2a2a");
 
   const handleFontSizeInputChange = (event) => {
     if (
@@ -82,8 +86,15 @@ export default function EditorToolBar({
     }
   };
 
+  const handleDarkmode = () => {
+    theme === "vs-dark" ? setBgColor(myTheme.palette.primary.light) 
+       : setBgColor(myTheme.palette.primary.dark);
+    theme === "vs-dark" ? setFontColor("#2a2a2a")
+       : setFontColor("#dadada");
+  }
+
   return (
-    <Toolbar className={classes.root}>
+    <Toolbar className={classes.root} style={{backgroundColor: bgColor}}>
       <FormGroup row>
         <FormControlLabel
           className={classes.formControl}
@@ -102,7 +113,7 @@ export default function EditorToolBar({
               ))}
             </Select>
           }
-          label="Language"
+          label={<span style={{color: fontColor}}>Language</span>}
           labelPlacement="start"
         />
         <FormControlLabel
@@ -135,7 +146,7 @@ export default function EditorToolBar({
               </Grid>
             </Grid>
           }
-          label={<Typography noWrap>Font size</Typography>}
+          label={<span style={{color: fontColor, whiteSpace: "nowrap"}}>Font size</span>}
           labelPlacement="start"
         />
         <FormControlLabel
@@ -144,10 +155,11 @@ export default function EditorToolBar({
               checked={theme === "vs-dark"}
               onChange={() => {
                 theme === "vs-dark" ? setTheme("vs") : setTheme("vs-dark");
+                handleDarkmode();
               }}
             />
           }
-          label={<Typography noWrap>Dark mode</Typography>}
+          label={<span style={{color: fontColor, whiteSpace: "nowrap"}}>Dark mode</span>}
           labelPlacement="start"
         />
       </FormGroup>

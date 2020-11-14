@@ -18,21 +18,21 @@ const useStyles = makeStyles((theme: Theme) => ({
     overflow: "auto",
   },
   overlay: {
-    display: "flex",
-    flexDirection: "column",
-    marginLeft: "-100px",
-    marginRight: "170px",
+    //display: "flex",
+    //flexDirection: "column",
+    //marginLeft: "-100px",
+    marginRight: "150px",
     '& .OfflineButton': {
       marginTop: "20px",
-      marginLeft: "25%",
-      width: "40%",
+      //marginLeft: "25%",
+      //width: "40%",
     },
     '& .Description': {
       marginTop: "10px",
     }
   },
   tabs: {
-    marginLeft: "-50px",
+    marginLeft: "100px",
   },
   footer: {
     backgroundColor: "rgb(34, 34, 34)",
@@ -53,7 +53,7 @@ export default function WelcomePage() {
           Welcome to Dpad!
         </Typography>
         <Typography className="Description" variant="body2">
-          Dpad is a decentralized online collaborative editor keeping your
+          Dpad is a decentralized online collaborative editor <br></br> keeping your
           data private and safe!
         </Typography>
         <Button className="OfflineButton" variant="contained" onClick={() => history.push("/offline")}>
