@@ -10,6 +10,11 @@ import DpadAppBar from "./AppBar";
 import ConnContext from "../contexts/ConnectionContext";
 import { useParams, useHistory } from "react-router-dom";
 
+function useForceUpdate(){
+  const [value, setValue] = useState(0);
+  return () => setValue(value => ++value);
+}
+
 export default function MonacoEditorPage() {
   const [monacoEditor, setMonacoEditor] = useState(null);
   const [language, setLanguage] = useState("javascript");
@@ -19,12 +24,57 @@ export default function MonacoEditorPage() {
   const { conn, updateConn } = useContext(ConnContext);
   const urlParam = useParams();
   const history = useHistory();
+  const forceUpdate = useForceUpdate();
 
   const defaultEditorOptions: EditorOptions = {
     fontSize: 20,
   };
 
+  let langMap = new Map([
+    ["java", "java"],
+    ["javascript", "js"],
+    ["python", "py"]
+  ])
+
   const [editorOptions, setEditorOptions] = useState(defaultEditorOptions);
+
+  const downloadFile = (text) => {
+    const element = document.createElement("a");
+    const file = new Blob([text], {type: 'text/plain'});
+    element.href = URL.createObjectURL(file);
+    element.download = "untitled." + langMap.get(language);
+    document.body.appendChild(element); // Required for this to work in FireFox
+    element.click();
+  }
+
+  const onSetSave = () => {
+    if (monacoEditor) {
+      // @ts-ignore: Object is possibly 'null'.
+      const text = monacoEditor.getValue();
+      if (text != "")
+        downloadFile(text);
+      setContent(text);
+    }
+  };
+
+  const onFileLoad = (e) => {
+    e.preventDefault();
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      // @ts-ignore: Object is possibly 'null'.
+      const text = (e.target.result);
+      setContent(text as string);
+      forceUpdate();
+    };
+    reader.readAsText(e.target.files[0]);
+  };
+
+  const onSetLoad = () => {
+    const fileSelector = document.createElement('input');
+    fileSelector.setAttribute('type', 'file');
+    fileSelector.onchange = onFileLoad;
+    fileSelector.click();
+  };
 
   const onSetLanguage = (lang) => {
     if (monacoEditor) {
@@ -98,6 +148,8 @@ export default function MonacoEditorPage() {
         language={language}
         theme={theme}
         editorOptions={editorOptions}
+        setSave={onSetSave}
+        setLoad={onSetLoad}
         setLanguage={onSetLanguage}
         setTheme={onSetTheme}
         setEditorOptions={onSetEditorOptions}

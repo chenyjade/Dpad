@@ -11,10 +11,12 @@ import {
   MenuItem,
   Theme,
   Input,
-  Typography,
   makeStyles,
+  IconButton,
 } from "@material-ui/core";
 import { useTheme } from '@material-ui/core/styles';
+import SaveOutlined from '@material-ui/icons/SaveOutlined';
+import NoteAddOutlined from '@material-ui/icons/NoteAddOutlined'
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -22,10 +24,17 @@ const useStyles = makeStyles((theme: Theme) => ({
     backgroundColor: theme.palette.primary.light,
     justifyContent: "space-between",
   },
+  loadButton: {
+    marginRight: "20px",
+  },
   select: {
     width: 120,
     marginRight: theme.spacing(2),
     marginLeft: theme.spacing(2),
+    textTransform: "capitalize",
+  },
+  menuItem: {
+    textTransform: "capitalize",
   },
   slider: {
     width: 120,
@@ -46,6 +55,8 @@ interface EditorToolBarProps {
   language: string;
   theme: string;
   editorOptions: EditorOptions;
+  setSave: () => void;
+  setLoad: () => void;
   setLanguage: (language: string) => void;
   setTheme: (theme: string) => void;
   setEditorOptions: (opts: EditorOptions) => void;
@@ -55,6 +66,8 @@ export default function EditorToolBar({
   language,
   theme,
   editorOptions,
+  setSave,
+  setLoad,
   setLanguage,
   setTheme,
   setEditorOptions,
@@ -91,11 +104,17 @@ export default function EditorToolBar({
        : setBgColor(myTheme.palette.primary.dark);
     theme === "vs-dark" ? setFontColor("#2a2a2a")
        : setFontColor("#dadada");
-  }
+  };
 
   return (
     <Toolbar className={classes.root} style={{backgroundColor: bgColor}}>
       <FormGroup row>
+        <IconButton aria-label="save" onClick={setSave}>
+          <SaveOutlined />
+        </IconButton>
+        <IconButton aria-label="load" className={classes.loadButton} onClick={setLoad}>
+          <NoteAddOutlined />
+        </IconButton>
         <FormControlLabel
           className={classes.formControl}
           control={
@@ -107,7 +126,11 @@ export default function EditorToolBar({
               className={classes.select}
             >
               {supportedLanguages.map((language) => (
-                <MenuItem value={language} key={"item-" + language}>
+                <MenuItem
+                  value={language}
+                  key={"item-" + language}
+                  className={classes.menuItem}
+                >
                   {language}
                 </MenuItem>
               ))}
