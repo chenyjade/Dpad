@@ -1,88 +1,133 @@
-const http = require('http');
-const fs = require('fs');
-const ws = require('ws');
+const http = require("http");
+const ws = require("ws");
 
 const port = process.env.PORT || 8000;
+
+const pingTimeout = 30000;
 
 /**
  * Map from documents  to a set of clients
  * @type {Map<string, Set<any>>}
  */
-const documents = new Map();
+const allDocGroups = new Map();
 
-const wss = new ws.Server({ noServer: true });
+const webSocketServer = new ws.Server({ noServer: true });
 
 const server = http.createServer((request, response) => {
   response.writeHead(200, {
-    'Content-Type': 'text/html',
+    "Content-Type": "text/html",
   });
   response.end();
 });
 
+const send = (conn, message) => {
+  if (conn.readyState !== ws.CONNECTING && conn.readyState !== ws.OPEN) {
+    conn.close();
+  }
+  try {
+    conn.send(JSON.stringify(message));
+  } catch (e) {
+    conn.close();
+  }
+};
+
 const onConnection = (conn) => {
   const joinedGroups = new Set();
-  let closed = false;
+  let isAlive = true;
+  let pongReceived = true;
 
-  conn.on('message', (message) => {
-    if (closed) return;
+  const pingInterval = setInterval(() => {
+    if (!pongReceived) {
+      conn.close();
+      clearInterval(pingInterval);
+    } else {
+      pongReceived = false;
+      try {
+        conn.ping();
+      } catch (e) {
+        conn.close();
+      }
+    }
+  }, pingTimeout);
+
+  conn.on("pong", () => {
+    pongReceived = true;
+  });
+
+  conn.on("message", (message) => {
+    if (!isAlive) return;
     try {
       message = JSON.parse(message);
     } catch (e) {
-      console.log('Invalid JSON');
+      console.log("Invalid JSON");
     }
-    if (message.type && !closed) {
+    if (message.type && isAlive) {
       switch (message.type) {
-        case 'join':
-          (message.docs || []).forEach((docName) => {
-            if (!documents.has(docName)) {
-              documents.set(docName, new Set());
-            }
-            const docGroup = documents.get(docName);
-            docGroup.add(conn);
-            joinedGroups.add(topicName);
-          });
+        case "subscribe":
+          if (message.docs) {
+            // the number of users connecting to the documents
+            // TODO: multiple documents
+            let usersCount = 0;
+            message.docs.forEach((docName) => {
+              if (!allDocGroups.has(docName)) {
+                allDocGroups.set(docName, new Set());
+              }
+              const docGroup = allDocGroups.get(docName);
+              docGroup.add(conn);
+              joinedGroups.add(topicName);
+              usersCount += docGroup.size;
+            });
+            message.numUsers = usersCount;
+          }
           break;
-        case 'leave':
-          (message.docs || []).forEach((docName) => {
-            const docGroup = documents.get(docName);
-            if (docGroup) {
-              docGroup.delete(conn);
-            }
-          });
+        case "unsubscribe":
+          if (message.docs) {
+            message.docs.forEach((docName) => {
+              const docGroup = allDocGroups.get(docName);
+              if (docGroup) {
+                docGroup.delete(conn);
+              }
+            });
+          }
           break;
-        case 'publish':
+        case "publish":
           if (message.topic) {
-            const receivers = documents.get(message.topic);
+            const receivers = allDocGroups.get(message.topic);
             if (receivers) {
               receivers.forEach((receiver) => {
-                receiver.send(JSON.stringify(message));
+                send(receiver, message);
               });
             }
           }
           break;
+        case "ping":
+          send(conn, { type: "pong" });
+          break;
       }
     }
   });
 
-  conn.on('close', () => {
+  conn.on("close", () => {
     joinedGroups.forEach((docName) => {
-      const docGroup = documents.get(docName);
+      const docGroup = allDocGroups.get(docName);
       if (docGroup) {
         docGroup.delete(conn);
-        if (docGroup.size == 0) documents.delete(docName);
+        if (docGroup.size == 0) allDocGroups.delete(docName);
       }
     });
-    closed = true;
+    isAlive = false;
     joinedGroups.clear();
   });
 };
 
-wss.on('connection', onConnection);
+webSocketServer.on("connection", onConnection);
 
-server.on('upgrade', (request, socket, head) => {
-  wss.handleUpgrade(request, socket, head, (ws) => {
-    wss.emit('connection', ws, request);
+server.on("upgrade", (request, socket, head) => {
+  webSocketServer.handleUpgrade(request, socket, head, (ws) => {
+    webSocketServer.emit("connection", ws, request);
   });
+  // send back the number of users connecting to the document
+  socket.end(`${request.numUsers} users are connecting to the document`);
 });
 
 server.listen(port);
