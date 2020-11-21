@@ -66,8 +66,7 @@ const onConnection = (conn) => {
         case "subscribe":
           if (message.docs) {
             // the number of users connecting to the documents
-            // TODO: multiple documents
-            let usersCount = 0;
+            let usersCount = [];
             message.docs.forEach((docName) => {
               if (!allDocGroups.has(docName)) {
                 allDocGroups.set(docName, new Set());
@@ -75,7 +74,7 @@ const onConnection = (conn) => {
               const docGroup = allDocGroups.get(docName);
               docGroup.add(conn);
               joinedGroups.add(topicName);
-              usersCount += docGroup.size;
+              usersCount.push(docGroup.size);
             });
             message.numUsers = usersCount;
           }
