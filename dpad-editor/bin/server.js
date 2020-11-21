@@ -126,7 +126,7 @@ server.on("upgrade", (request, socket, head) => {
     webSocketServer.emit("connection", ws, request);
   });
   // send back the number of users connecting to the document
-  socket.end(`${request.numUsers} users are connecting to the document`);
+  socket.end({ numUsers: request.numUsers });
 });
 
 server.listen(port);
