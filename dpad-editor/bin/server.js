@@ -62,7 +62,7 @@ const onConnection = (conn) => {
       // console.log("Invalid JSON");
     }
     if (message.type && isAlive) {
-      // console.log(message);
+      console.log(message);
       switch (message.type) {
         case "create":
           if (message.topics) {

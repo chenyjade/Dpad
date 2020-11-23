@@ -17,6 +17,7 @@ import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import Button from "@material-ui/core/Button";
 import { useParams, useHistory } from "react-router-dom";
+import config from "../../package.json"
 
 function useForceUpdate() {
   const [value, setValue] = useState(0);
@@ -125,7 +126,7 @@ export default function MonacoEditorPage() {
 
     const yDoc = new Y.Doc();
     const webRtcOpt = {
-      signaling: ["ws://localhost:34000"],
+      signaling: [config.signalingServer],
       password: conn.password,
       awareness: new awarenessProtocol.Awareness(yDoc),
       maxConns: conn.maxConns,
@@ -158,7 +159,7 @@ export default function MonacoEditorPage() {
         setAlertMsg("Invalid DocId");
       }
     });
-    return () => {};
+    return () => {yjsProvider.disconnect()};
   }, [monacoEditor]);
 
   return (

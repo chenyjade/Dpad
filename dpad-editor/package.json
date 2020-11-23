@@ -49,6 +49,7 @@
       "last 1 safari version"
     ]
   },
+  "signalingServer": "ws://localhost:34000",
   "devDependencies": {
     "react-app-rewired": "^2.1.6"
   }
