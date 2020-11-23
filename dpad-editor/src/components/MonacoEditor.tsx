@@ -147,7 +147,7 @@ export default function MonacoEditorPage() {
       yjsProvider.awareness
     );
     
-    yjsProvider.connect(conn.create);
+    //yjsProvider.connect(conn.create);
     setConnectionStatus("connected");
     emitter.on("webrtc", (message) => {
       if (message.type === "incorrect password") {
@@ -158,6 +158,7 @@ export default function MonacoEditorPage() {
         setConnectionStatus("disconnected");
         setAlertMsg("Invalid DocId");
       }
+      yjsProvider.disconnect()
     });
     return () => {yjsProvider.disconnect()};
   }, [monacoEditor]);

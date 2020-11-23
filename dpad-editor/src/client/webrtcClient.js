@@ -384,7 +384,7 @@ export class Room {
    * @param {string} name
    * @param {CryptoKey|null} key
    */
-  constructor(doc, provider, name, key) {
+  constructor(doc, provider, name, key, initiator) {
     /**
      * Do not assume that peerId is unique. This is only meant for sending signaling messages.
      *
@@ -399,6 +399,7 @@ export class Room {
     this.provider = provider;
     this.synced = false;
     this.name = name;
+    this.initiator = initiator;
     // @todo make key secret by scoping
     this.key = key;
     /**
@@ -467,9 +468,9 @@ export class Room {
       });
     });
   }
-  connect(create = false) {
+  connect() {
     // signal through all available signaling connectionss
-    create ? createNewDoc(this) : announceSignalingInfo(this);
+    this.initiator ? createNewDoc(this) : announceSignalingInfo(this);
     const roomName = this.name;
     bc.subscribe(roomName, this._bcSubscriber);
     this.bcconnected = true;
@@ -525,6 +526,7 @@ export class Room {
     this.doc.off("update", this._docUpdateHandler);
     this.awareness.off("update", this._awarenessUpdateHandler);
     this.webrtcConns.forEach((conn) => conn.destroy());
+    rooms.delete(this.name)
   }
 
   destroy() {
@@ -539,12 +541,12 @@ export class Room {
  * @param {CryptoKey|null} key
  * @return {Room}
  */
-const openRoom = (doc, provider, name, key) => {
+const openRoom = (doc, provider, name, key, create) => {
   // there must only be one room
   if (rooms.has(name)) {
     throw error.create(`A Yjs Doc connected to room "${name}" already exists!`);
   }
-  const room = new Room(doc, provider, name, key);
+  const room = new Room(doc, provider, name, key, create);
   rooms.set(name, /** @type {Room} */ (room));
   return room;
 };
@@ -580,11 +582,21 @@ export class SignalingConn extends ws.WebsocketClient {
       log(`connected (${url})`);
       // const topics = Array.from(rooms.keys());
       rooms.forEach((room) => {
-        this.send({ type: "subscribe", topics: [room.name], from: room.peerId });
-        publishSignalingMessage(this, room, {
-          type: "announce",
-          from: room.peerId,
-        });
+        if (!room.synced) {
+          if (room.initiator) {
+            createNewDoc(room);
+          } else {
+            this.send({
+              type: "subscribe",
+              topics: [room.name],
+              from: room.peerId,
+            });
+            publishSignalingMessage(this, room, {
+              type: "announce",
+              from: room.peerId,
+            });
+          }
+        }
       });
     });
     this.on("message", (m) => {
@@ -732,14 +744,14 @@ export class WebrtcProvider extends Observable {
      */
     this.room = null;
     this.key.then((key) => {
-      this.room = openRoom(doc, this, roomName, key);
+      this.room = openRoom(doc, this, roomName, key, create);
       if (this.shouldConnect) {
-        this.room.connect(create);
+        this.room.connect();
       } else {
         this.room.disconnect();
       }
     });
-    this.connect(create);
+    this.connect();
   }
 
   /**
@@ -759,7 +771,7 @@ export class WebrtcProvider extends Observable {
     return numOfConnection > 0;
   }
 
-  connect(create = false) {
+  connect() {
     this.shouldConnect = true;
     this.signalingUrls.forEach((url) => {
       const signalingConn = map.setIfUndefined(
@@ -771,7 +783,7 @@ export class WebrtcProvider extends Observable {
       signalingConn.providers.add(this);
     });
     if (this.room) {
-      this.room.connect(create);
+      this.room.connect();
     }
   }
 
