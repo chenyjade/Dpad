@@ -4,12 +4,14 @@ export interface connectionProps {
   docId: string;
   password: string;
   maxConns: number;
+  create: boolean;
 }
 
 export const defaultConnection: connectionProps = {
   docId: "",
   password: "",
   maxConns: 1,
+  create: true,
 };
 
 const ConnContext = React.createContext({

@@ -59,29 +59,55 @@ const onConnection = (conn) => {
     try {
       message = JSON.parse(message);
     } catch (e) {
-      console.log("Invalid JSON");
+      // console.log("Invalid JSON");
     }
     if (message.type && isAlive) {
+      // console.log(message);
       switch (message.type) {
-        case "subscribe":
-          if (message.docs) {
-            // the number of users connecting to the documents
-            let usersCount = [];
-            message.docs.forEach((docName) => {
+        case "create":
+          if (message.topics) {
+            message.topics.forEach((docName) => {
               if (!allDocGroups.has(docName)) {
                 allDocGroups.set(docName, new Set());
+                const docGroup = allDocGroups.get(docName);
+                docGroup.add(conn);
+                joinedGroups.add(docName);
+              } else {
+                send(conn, {
+                  type: "error",
+                  message: "DocId already exists",
+                  to: message.from,
+                  topic: docName,
+                });
               }
-              const docGroup = allDocGroups.get(docName);
-              docGroup.add(conn);
-              joinedGroups.add(topicName);
-              usersCount.push(docGroup.size);
             });
-            message.numUsers = usersCount;
+          }
+          break;
+        case "subscribe":
+          if (message.topics) {
+            // the number of users connecting to the documents
+            // let usersCount = [];
+            message.topics.forEach((docName) => {
+              if (!allDocGroups.has(docName)) {
+                send(conn, {
+                  type: "error",
+                  message: "invalid docId",
+                  to: message.from,
+                  topic: docName,
+                });
+              } else {
+                const docGroup = allDocGroups.get(docName);
+                docGroup.add(conn);
+                joinedGroups.add(docName);
+                // usersCount.push(docGroup.size);
+              }
+            });
+            // message.numUsers = usersCount;
           }
           break;
         case "unsubscribe":
-          if (message.docs) {
-            message.docs.forEach((docName) => {
+          if (message.topics) {
+            message.topics.forEach((docName) => {
               const docGroup = allDocGroups.get(docName);
               if (docGroup) {
                 docGroup.delete(conn);
@@ -90,6 +116,16 @@ const onConnection = (conn) => {
           }
           break;
         case "publish":
+          if (message.topic) {
+            const receivers = allDocGroups.get(message.topic);
+            if (receivers) {
+              receivers.forEach((receiver) => {
+                send(receiver, message);
+              });
+            }
+          }
+          break;
+        case "error":
           if (message.topic) {
             const receivers = allDocGroups.get(message.topic);
             if (receivers) {
@@ -126,7 +162,7 @@ server.on("upgrade", (request, socket, head) => {
     webSocketServer.emit("connection", ws, request);
   });
   // send back the number of users connecting to the document
-  socket.end({ numUsers: request.numUsers });
+  // socket.end({ numUsers: request.numUsers });
 });
 
 server.listen(port);

@@ -1,18 +1,26 @@
 import React, { useState, useEffect, useContext } from "react";
 import * as Y from "yjs";
 import { MonacoBinding } from "y-monaco";
-import { WebrtcProvider } from "y-webrtc";
+//import { WebrtcProvider } from "y-webrtc";
+import emitter from "../utils/events";
+import { WebrtcProvider } from "../client/webrtcClient";
 import * as awarenessProtocol from "y-protocols/awareness.js";
 import { EditorOptions } from "./EditorOptions";
 import EditorToolBar from "./EditorToolBar";
 import MonacoEditor from "react-monaco-editor";
 import DpadAppBar from "./AppBar";
 import ConnContext from "../contexts/ConnectionContext";
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import Button from "@material-ui/core/Button";
 import { useParams, useHistory } from "react-router-dom";
 
-function useForceUpdate(){
+function useForceUpdate() {
   const [value, setValue] = useState(0);
-  return () => setValue(value => ++value);
+  return () => setValue((value) => ++value);
 }
 
 export default function MonacoEditorPage() {
@@ -22,6 +30,7 @@ export default function MonacoEditorPage() {
   const [content, setContent] = useState("");
   const [connectionStatus, setConnectionStatus] = useState("disconnected");
   const { conn, updateConn } = useContext(ConnContext);
+  const [alertMsg, setAlertMsg] = useState("");
   const urlParam = useParams();
   const history = useHistory();
   const forceUpdate = useForceUpdate();
@@ -33,26 +42,25 @@ export default function MonacoEditorPage() {
   let langMap = new Map([
     ["java", "java"],
     ["javascript", "js"],
-    ["python", "py"]
-  ])
+    ["python", "py"],
+  ]);
 
   const [editorOptions, setEditorOptions] = useState(defaultEditorOptions);
 
   const downloadFile = (text) => {
     const element = document.createElement("a");
-    const file = new Blob([text], {type: 'text/plain'});
+    const file = new Blob([text], { type: "text/plain" });
     element.href = URL.createObjectURL(file);
     element.download = "untitled." + langMap.get(language);
     document.body.appendChild(element); // Required for this to work in FireFox
     element.click();
-  }
+  };
 
   const onSetSave = () => {
     if (monacoEditor) {
       // @ts-ignore: Object is possibly 'null'.
       const text = monacoEditor.getValue();
-      if (text != "")
-        downloadFile(text);
+      if (text != "") downloadFile(text);
       setContent(text);
     }
   };
@@ -62,7 +70,7 @@ export default function MonacoEditorPage() {
     const reader = new FileReader();
     reader.onload = (e) => {
       // @ts-ignore: Object is possibly 'null'.
-      const text = (e.target.result);
+      const text = e.target.result;
       setContent(text as string);
       forceUpdate();
     };
@@ -70,8 +78,8 @@ export default function MonacoEditorPage() {
   };
 
   const onSetLoad = () => {
-    const fileSelector = document.createElement('input');
-    fileSelector.setAttribute('type', 'file');
+    const fileSelector = document.createElement("input");
+    fileSelector.setAttribute("type", "file");
     fileSelector.onchange = onFileLoad;
     fileSelector.click();
   };
@@ -98,7 +106,7 @@ export default function MonacoEditorPage() {
       setContent(monacoEditor.getValue());
     }
     setEditorOptions(editorOptions);
-  }
+  };
 
   const onEditorMounted = (editor: any, _: any) => {
     setMonacoEditor(editor);
@@ -122,6 +130,7 @@ export default function MonacoEditorPage() {
       awareness: new awarenessProtocol.Awareness(yDoc),
       maxConns: conn.maxConns,
       filterBcConns: true,
+      create: conn.create,
       peerOpts: {}, // simple-peer options. See https://github.com/feross/simple-peer#peer--new-peeropts
     };
 
@@ -136,13 +145,50 @@ export default function MonacoEditorPage() {
       new Set([monacoEditor]),
       yjsProvider.awareness
     );
-    yjsProvider.connect();
+    
+    yjsProvider.connect(conn.create);
     setConnectionStatus("connected");
+    emitter.on("webrtc", (message) => {
+      if (message.type === "incorrect password") {
+        setConnectionStatus("disconnected");
+        setAlertMsg("Incorrect Password");
+      }
+      if (message.type === "invalid docId") {
+        setConnectionStatus("disconnected");
+        setAlertMsg("Invalid DocId");
+      }
+    });
     return () => {};
   }, [monacoEditor]);
 
   return (
     <div>
+      <Dialog
+        open={alertMsg !== ""}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">{alertMsg}</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            {alertMsg === "Incorrect Password"
+              ? "The password you entered is incorrect"
+              : "The doc id you provided does not exists"}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setAlertMsg("");
+              history.push("/join/" + urlParam.docId);
+            }}
+            color="primary"
+            autoFocus
+          >
+            Back
+          </Button>
+        </DialogActions>
+      </Dialog>
       <DpadAppBar status={connectionStatus} />
       <EditorToolBar
         language={language}

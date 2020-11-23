@@ -13,7 +13,7 @@ function App() {
         <Router>
           <Switch>
             <Route exact path="/offline" component={MonacoEditorPage} />
-            <Route path="/doc/:docId" component={MonacoEditorPage} />
+            <Route path="/doc/:docId/" component={MonacoEditorPage} />
             <Route path="/join/:docId" component={WelcomePage} />
             <Route path="/" component={WelcomePage} />
           </Switch>

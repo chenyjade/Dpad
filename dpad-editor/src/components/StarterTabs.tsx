@@ -79,9 +79,10 @@ export default function StarterTabs() {
     //TODO: Add input verification
     if (tab === 0) {
       const newId = uuidv4();
-      updateConn({ ...conn, docId: newId });
+      updateConn({ ...conn, docId: newId, create: true });
       history.push("/doc/" + newId);
     } else {
+      updateConn({ ...conn, create: false });
       history.push("/doc/" + conn.docId);
     }
   };
