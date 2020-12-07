@@ -1,5 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { EditorOptions, supportedLanguages } from "./EditorOptions";
+import React, { useState } from "react";
+import {
+  EditorOptions,
+  supportedLanguages,
+  fontWeightOpts,
+  fontFamilyOpts,
+} from "./EditorOptions";
 import {
   Toolbar,
   FormGroup,
@@ -14,9 +19,9 @@ import {
   makeStyles,
   IconButton,
 } from "@material-ui/core";
-import { useTheme } from '@material-ui/core/styles';
-import SaveOutlined from '@material-ui/icons/SaveOutlined';
-import NoteAddOutlined from '@material-ui/icons/NoteAddOutlined'
+import { useTheme } from "@material-ui/core/styles";
+import SaveOutlined from "@material-ui/icons/SaveOutlined";
+import NoteAddOutlined from "@material-ui/icons/NoteAddOutlined";
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -83,7 +88,7 @@ export default function EditorToolBar({
     if (
       event.target.value >= 4 &&
       event.target.value <= 40 &&
-      Number(event.target.value) % 2 == 0
+      Number(event.target.value) % 2 === 0
     ) {
       setFontSize(Number(event.target.value));
     }
@@ -94,25 +99,29 @@ export default function EditorToolBar({
       setFontSize(4);
     } else if (editorOptions.fontSize > 40) {
       setFontSize(40);
-    } else if (Number(editorOptions.fontSize) % 2 == 1) {
+    } else if (Number(editorOptions.fontSize) % 2 === 1) {
       setFontSize(Number(editorOptions.fontSize) - 1);
     }
   };
 
   const handleDarkmode = () => {
-    theme === "vs-dark" ? setBgColor(myTheme.palette.primary.light) 
-       : setBgColor(myTheme.palette.primary.dark);
-    theme === "vs-dark" ? setFontColor("#2a2a2a")
-       : setFontColor("#dadada");
+    theme === "vs-dark"
+      ? setBgColor(myTheme.palette.primary.light)
+      : setBgColor(myTheme.palette.primary.dark);
+    theme === "vs-dark" ? setFontColor("#2a2a2a") : setFontColor("#dadada");
   };
 
   return (
-    <Toolbar className={classes.root} style={{backgroundColor: bgColor}}>
+    <Toolbar className={classes.root} style={{ backgroundColor: bgColor }}>
       <FormGroup row>
         <IconButton aria-label="save" onClick={setSave}>
           <SaveOutlined />
         </IconButton>
-        <IconButton aria-label="load" className={classes.loadButton} onClick={setLoad}>
+        <IconButton
+          aria-label="load"
+          className={classes.loadButton}
+          onClick={setLoad}
+        >
           <NoteAddOutlined />
         </IconButton>
         <FormControlLabel
@@ -136,7 +145,67 @@ export default function EditorToolBar({
               ))}
             </Select>
           }
-          label={<span style={{color: fontColor}}>Language</span>}
+          label={<span style={{ color: fontColor }}>Language</span>}
+          labelPlacement="start"
+        />
+        <FormControlLabel
+          className={classes.formControl}
+          control={
+            <Select
+              labelId="fontweight-select-label"
+              id="fontweight-select"
+              value={editorOptions.fontWeight}
+              onChange={(e) => {
+                setEditorOptions({
+                  ...editorOptions,
+                  fontWeight: e.target.value as string,
+                })
+                console.log(e.target.value)
+              }
+              }
+              className={classes.select}
+            >
+              {fontWeightOpts.map((weight) => (
+                <MenuItem
+                  value={weight}
+                  key={"item-" + weight}
+                  className={classes.menuItem}
+                >
+                  {weight}
+                </MenuItem>
+              ))}
+            </Select>
+          }
+          label={<span style={{ color: fontColor }}>Font weight</span>}
+          labelPlacement="start"
+        />
+        <FormControlLabel
+          className={classes.formControl}
+          control={
+            <Select
+              labelId="fontfamily-select-label"
+              id="fontfamily-select"
+              value={editorOptions.fontFamily}
+              onChange={(e) =>
+                setEditorOptions({
+                  ...editorOptions,
+                  fontFamily: e.target.value as string,
+                })
+              }
+              className={classes.select}
+            >
+              {fontFamilyOpts.map((font) => (
+                <MenuItem
+                  value={font}
+                  key={"item-" + font}
+                  className={classes.menuItem}
+                >
+                  {font}
+                </MenuItem>
+              ))}
+            </Select>
+          }
+          label={<span style={{ color: fontColor }}>Font family</span>}
           labelPlacement="start"
         />
         <FormControlLabel
@@ -169,7 +238,11 @@ export default function EditorToolBar({
               </Grid>
             </Grid>
           }
-          label={<span style={{color: fontColor, whiteSpace: "nowrap"}}>Font size</span>}
+          label={
+            <span style={{ color: fontColor, whiteSpace: "nowrap" }}>
+              Font size
+            </span>
+          }
           labelPlacement="start"
         />
         <FormControlLabel
@@ -182,7 +255,31 @@ export default function EditorToolBar({
               }}
             />
           }
-          label={<span style={{color: fontColor, whiteSpace: "nowrap"}}>Dark mode</span>}
+          label={
+            <span style={{ color: fontColor, whiteSpace: "nowrap" }}>
+              Dark mode
+            </span>
+          }
+          labelPlacement="start"
+        />
+        <FormControlLabel
+          control={
+            <Switch
+              checked={editorOptions.lineNumbers === "on"}
+              onChange={() => {
+                setEditorOptions({
+                  ...editorOptions,
+                  lineNumbers:
+                    editorOptions.lineNumbers === "on" ? "off" : "on",
+                });
+              }}
+            />
+          }
+          label={
+            <span style={{ color: fontColor, whiteSpace: "nowrap" }}>
+              Line number
+            </span>
+          }
           labelPlacement="start"
         />
       </FormGroup>

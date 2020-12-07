@@ -3,7 +3,7 @@ import { makeStyles, Theme } from "@material-ui/core/styles";
 import AppBar from "@material-ui/core/AppBar";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
-import { Button, Paper, TextField } from "@material-ui/core";
+import { Button, TextField } from "@material-ui/core";
 import { useParams, useHistory } from "react-router-dom";
 import connectionContext from "../contexts/ConnectionContext";
 import { v4 as uuidv4 } from "uuid";
@@ -115,10 +115,10 @@ export default function StarterTabs() {
             margin="dense"
             fullWidth
             id="max-connections-input"
-            label="Max number of collaborators"
+            label="Max number of editors"
             value={conn.maxConns}
             onChange={(e) =>
-              updateConn({ ...conn, maxConns: Number(e.target.value) })
+              updateConn({ ...conn, maxConns: Number(e.target.value)})
             }
           />
           <Button variant="contained" onClick={onStartBtnClick}>

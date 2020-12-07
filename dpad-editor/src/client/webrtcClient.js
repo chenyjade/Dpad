@@ -248,6 +248,7 @@ export class WebrtcConn {
     });
     this.peer.on("connect", () => {
       log("connected to ", logging.BOLD, remotePeerId);
+      emitter.emit("memberChanged", {numOfEditor: room.webrtcConns.size + 1})
       this.connected = true;
       // send sync step 1
       const provider = room.provider;
@@ -286,6 +287,7 @@ export class WebrtcConn {
         ]);
       }
       checkIsSynced(room);
+      emitter.emit("memberChanged", {numOfEditor: room.webrtcConns.size + 1})
       this.peer.destroy();
       log("closed connection to ", logging.BOLD, remotePeerId);
     });
@@ -297,11 +299,11 @@ export class WebrtcConn {
         logging.UNBOLD,
         " has been closed"
       );
-      announceSignalingInfo(room);
+      //announceSignalingInfo(room);
     });
     this.peer.on("error", (err) => {
       log("Error in connection to ", logging.BOLD, remotePeerId, ": ", err);
-      announceSignalingInfo(room);
+      //announceSignalingInfo(room);
     });
     this.peer.on("data", (data) => {
       const answer = readPeerMessage(this, data);
@@ -526,7 +528,7 @@ export class Room {
     this.doc.off("update", this._docUpdateHandler);
     this.awareness.off("update", this._awarenessUpdateHandler);
     this.webrtcConns.forEach((conn) => conn.destroy());
-    rooms.delete(this.name)
+    rooms.delete(this.name);
   }
 
   destroy() {
@@ -600,7 +602,6 @@ export class SignalingConn extends ws.WebsocketClient {
       });
     });
     this.on("message", (m) => {
-      // console.log(m);
       switch (m.type) {
         case "error": {
           const room = rooms.get(m.topic);
@@ -662,6 +663,8 @@ export class SignalingConn extends ws.WebsocketClient {
                   emitPeerChange();
                 }
                 break;
+              default:
+                break;
             }
           };
           if (room.key) {
@@ -681,7 +684,10 @@ export class SignalingConn extends ws.WebsocketClient {
           } else {
             execMessage(m.data);
           }
+          break;
         }
+        default:
+          break;
       }
     });
     this.on("disconnect", () => log(`disconnect (${url})`));

@@ -5,7 +5,7 @@ import { MonacoBinding } from "y-monaco";
 import emitter from "../utils/events";
 import { WebrtcProvider } from "../client/webrtcClient";
 import * as awarenessProtocol from "y-protocols/awareness.js";
-import { EditorOptions } from "./EditorOptions";
+import { EditorOptions, langSuffix } from "./EditorOptions";
 import EditorToolBar from "./EditorToolBar";
 import MonacoEditor from "react-monaco-editor";
 import DpadAppBar from "./AppBar";
@@ -19,6 +19,10 @@ import Button from "@material-ui/core/Button";
 import { useParams, useHistory } from "react-router-dom";
 import config from "../../package.json"
 
+
+// @ts-ignore: Object is possibly 'null'.
+//document.body.style.overflowY = "hidden";//隐藏纵向滚动条
+
 function useForceUpdate() {
   const [value, setValue] = useState(0);
   return () => setValue((value) => ++value);
@@ -29,8 +33,9 @@ export default function MonacoEditorPage() {
   const [language, setLanguage] = useState("javascript");
   const [theme, setTheme] = useState("vs");
   const [content, setContent] = useState("");
-  const [connectionStatus, setConnectionStatus] = useState("disconnected");
+  //const [connectionStatus, setConnectionStatus] = useState("disconnected");
   const { conn, updateConn } = useContext(ConnContext);
+  const [ numOfEditor, setNumOfEditor ] = useState(1)
   const [alertMsg, setAlertMsg] = useState("");
   const urlParam = useParams();
   const history = useHistory();
@@ -38,13 +43,10 @@ export default function MonacoEditorPage() {
 
   const defaultEditorOptions: EditorOptions = {
     fontSize: 20,
+    fontFamily: "Monospace",
+    fontWeight: "normal",
+    lineNumbers: "on",
   };
-
-  let langMap = new Map([
-    ["java", "java"],
-    ["javascript", "js"],
-    ["python", "py"],
-  ]);
 
   const [editorOptions, setEditorOptions] = useState(defaultEditorOptions);
 
@@ -52,7 +54,7 @@ export default function MonacoEditorPage() {
     const element = document.createElement("a");
     const file = new Blob([text], { type: "text/plain" });
     element.href = URL.createObjectURL(file);
-    element.download = "untitled." + langMap.get(language);
+    element.download = "untitled." + langSuffix.get(language);
     document.body.appendChild(element); // Required for this to work in FireFox
     element.click();
   };
@@ -61,7 +63,7 @@ export default function MonacoEditorPage() {
     if (monacoEditor) {
       // @ts-ignore: Object is possibly 'null'.
       const text = monacoEditor.getValue();
-      if (text != "") downloadFile(text);
+      if (text !== "") downloadFile(text);
       setContent(text);
     }
   };
@@ -124,12 +126,13 @@ export default function MonacoEditorPage() {
       return () => {};
     }
 
+
     const yDoc = new Y.Doc();
     const webRtcOpt = {
       signaling: [config.signalingServer],
       password: conn.password,
       awareness: new awarenessProtocol.Awareness(yDoc),
-      maxConns: conn.maxConns,
+      maxConns: conn.maxConns - 1,
       filterBcConns: true,
       create: conn.create,
       peerOpts: {}, // simple-peer options. See https://github.com/feross/simple-peer#peer--new-peeropts
@@ -148,19 +151,32 @@ export default function MonacoEditorPage() {
     );
     
     //yjsProvider.connect(conn.create);
-    setConnectionStatus("connected");
+    //setConnectionStatus("connected");
     emitter.on("webrtc", (message) => {
       if (message.type === "incorrect password") {
-        setConnectionStatus("disconnected");
+        //setConnectionStatus("disconnected");
         setAlertMsg("Incorrect Password");
       }
       if (message.type === "invalid docId") {
-        setConnectionStatus("disconnected");
+        //setConnectionStatus("disconnected");
         setAlertMsg("Invalid DocId");
       }
       yjsProvider.disconnect()
     });
-    return () => {yjsProvider.disconnect()};
+
+    emitter.on("memberChanged", (message) => {
+      setNumOfEditor(message.numOfEditor)
+    });
+
+    const unloadListener = ev => {
+      ev.preventDefault();
+      ev.returnValue="Remember to save the content before leaving!"
+    }
+    window.addEventListener("beforeunload", unloadListener);
+    return () => {
+      window.removeEventListener("beforeunload", unloadListener);
+      yjsProvider.disconnect();
+    };
   }, [monacoEditor]);
 
   return (
@@ -191,7 +207,7 @@ export default function MonacoEditorPage() {
           </Button>
         </DialogActions>
       </Dialog>
-      <DpadAppBar status={connectionStatus} />
+      <DpadAppBar numOfEditor={numOfEditor} />
       <EditorToolBar
         language={language}
         theme={theme}
@@ -203,13 +219,13 @@ export default function MonacoEditorPage() {
         setEditorOptions={onSetEditorOptions}
       />
       <MonacoEditor
-        height="90vh" // By default, it fully fits with its parent
+        height="100vh" // By default, it fully fits with its parent
         theme={theme}
         language={language}
         value={content}
         options={editorOptions}
         editorDidMount={onEditorMounted}
-      />
+        />
     </div>
   );
 }

@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import MuiAppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
-import { Typography, TextField, Theme, makeStyles } from '@material-ui/core';
+import { Typography, Theme, makeStyles } from '@material-ui/core';
 import { green } from '@material-ui/core/colors';
 import CheckCircleOutlineRoundedIcon from '@material-ui/icons/CheckCircleOutlineRounded';
 import HighlightOffIcon from '@material-ui/icons/HighlightOff';
@@ -37,10 +37,10 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 interface DpadAppBarProps {
-  status: string
+  numOfEditor: number
 }
 
-export default function DpadAppBar({ status }: DpadAppBarProps) {
+export default function DpadAppBar({ numOfEditor }: DpadAppBarProps) {
   const classes = useStyles()
   return (
       <CustomizedAppBar position="static">
@@ -51,8 +51,7 @@ export default function DpadAppBar({ status }: DpadAppBarProps) {
         </Typography>
         
         <Typography className={classes.right} >
-          {status === "connected" ? <CheckCircleOutlineRoundedIcon style={{ color: green[500] }} /> : <HighlightOffIcon color="secondary" />}
-          {status}
+          {"Number of editors: " + numOfEditor}
           </Typography>
         </Toolbar>
       </CustomizedAppBar>

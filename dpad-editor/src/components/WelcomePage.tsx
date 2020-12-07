@@ -66,7 +66,7 @@ export default function WelcomePage() {
     </Grid>
     <AppBar position="sticky" className={classes.footer}>
         <Typography variant="body1">
-          &copy; Created by Group 8
+          &copy; Created by TeamD
         </Typography>
     </AppBar>
     </div>
